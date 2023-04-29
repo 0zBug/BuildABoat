@@ -1,9 +1,9 @@
 # BuildABoat
 
 ## Tools needed:
-Paintbrush: Color
-Tape Measure: Size, Position, Orientation, CFrame
-Screwdriver: Transparency, Anchored, CanCollide, CastShadow
+- Paintbrush: Color
+- Tape Measure: Size, Position, Orientation, CFrame
+- Screwdriver: Transparency, Anchored, CanCollide, CastShadow
 
 # Example
 ```lua

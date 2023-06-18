@@ -1,3 +1,5 @@
+
+local Character = game.Players.LocalPlayer.Character
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Character = LocalPlayer.Character
@@ -25,6 +27,9 @@ local Paint = PaintingTool.RF
 local DeleteTool = GetTool("DeleteTool")
 local Delete = DeleteTool.RF
 
+local BindTool = GetTool("BindTool")
+local Bind = BindTool.RF
+
 local PropertiesTool = GetTool("PropertiesTool")
 local Screwdriver = PropertiesTool.SetPropertieRF
 
@@ -38,7 +43,8 @@ Workspace.DescendantAdded:Connect(function(Instance)
 end)
 
 local function Move(Block, CFrame)
-	if Block.Name == "Sign" then
+
+	if string.sub(Block.Name, -5, -1) ~= "Block" then
 		TrowelTool.Parent = Character
 		
 		Trowel:InvokeServer({Block}, Block.PPart.CFrame, CFrame, "Move")
@@ -47,6 +53,7 @@ local function Move(Block, CFrame)
 	else
 		Scale:InvokeServer(Block, Block.PPart.Size, CFrame)
 	end
+	
 end
 
 
@@ -115,7 +122,17 @@ function BuildABoat.new(Type)
         Object = Block,
         ActionFinished = true,
         Destroy = function(self) Delete:InvokeServer(self.Object) end,
-        Remove = function(self) Delete:InvokeServer(self.Object) end
+        Remove = function(self) Delete:InvokeServer(self.Object) end,
+        ["Link"] = function(self, Link)
+        	local Link = Link.Object.Parent
+        	
+			Bind:InvokeServer({Link:FindFirstChild("BindWait") or Link:FindFirstChild("BindFire")}, self.Object.Parent, -1, false)
+		end,
+		["Unlink"] = function(self, Link)
+			local Link = Link.Object.Parent
+			
+			Bind:InvokeServer({Link:FindFirstChild("BindWait") or Link:FindFirstChild("BindFire")}, self.Object.Parent, -1, true)
+		end
     }, {
         __index = Properties,
         __newindex = function(self, Key, Value)

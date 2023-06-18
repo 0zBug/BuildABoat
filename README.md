@@ -4,7 +4,8 @@
 - Paintbrush: Color
 - Tape Measure: Size, Position, Orientation, CFrame
 - Screwdriver: Transparency, Anchored, CanCollide, CastShadow
-- Trowel: Sign Position, Orientation and CFrame
+- Trowel: Complex Block Position, Orientation and CFrame
+- BindTool: Block Wiring
 
 # Example
 ```lua

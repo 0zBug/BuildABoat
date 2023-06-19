@@ -43,7 +43,6 @@ Workspace.DescendantAdded:Connect(function(Instance)
 end)
 
 local function Move(Block, CFrame)
-
 	if string.sub(Block.Name, -5, -1) ~= "Block" then
 		TrowelTool.Parent = Character
 		
@@ -55,7 +54,6 @@ local function Move(Block, CFrame)
 	end
 	
 end
-
 
 local Edit = {
     ["Size"] = function(Block, Size)
@@ -116,10 +114,15 @@ BuildABoat.Zone = Zone
 function BuildABoat.new(Type)
     Build:InvokeServer(Type, LocalPlayer.Data[Type].Value, Zone, CFrame.new(0, -200, 0), true, 1, CFrame.new(), false)
 
-    local Properties = getproperties(Block)
+	repeat task.wait() until Block ~= nil
+	
+	local Object = Block
+	Block = nil
+	
+    local Properties = getproperties(Object)
 
     return setmetatable({
-        Object = Block,
+        Object = Object,
         ActionFinished = true,
         Destroy = function(self) Delete:InvokeServer(self.Object) end,
         Remove = function(self) Delete:InvokeServer(self.Object) end,

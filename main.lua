@@ -1,4 +1,3 @@
-
 local Character = game.Players.LocalPlayer.Character
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -33,15 +32,6 @@ local Bind = BindTool.RF
 local PropertiesTool = GetTool("PropertiesTool")
 local Screwdriver = PropertiesTool.SetPropertieRF
 
-local Block
-Workspace.DescendantAdded:Connect(function(Instance)
-    if Instance.Name == "PPart" then
-        if Instance.Position == Zone.Position - Vector3.new(0, 200, 0) then
-            Block = Instance
-        end
-    end
-end)
-
 local function Move(Block, CFrame)
 	if string.sub(Block.Name, -5, -1) ~= "Block" then
 		TrowelTool.Parent = Character
@@ -52,7 +42,6 @@ local function Move(Block, CFrame)
 	else
 		Scale:InvokeServer(Block, Block.PPart.Size, CFrame)
 	end
-	
 end
 
 local Edit = {
@@ -89,17 +78,23 @@ local Edit = {
     end,
     ["Anchored"] = function(Block, Anchored)
         if Block.PPart.Anchored ~= Anchored then
+        	PropertiesTool.Parent = Character
             Screwdriver:InvokeServer("Anchored", {Block})
+            PropertiesTool.Parent = Backpack
         end
     end,
     ["CanCollide"] = function(Block, CanCollide)
         if Block.PPart.CanCollide ~= CanCollide then
+        	PropertiesTool.Parent = Character
             Screwdriver:InvokeServer("Collision", {Block})
+            PropertiesTool.Parent = Backpack
         end
     end,
     ["CastShadow"] = function(Block, CastShadow)
         if Block.PPart.CastShadow ~= CastShadow then
+        	PropertiesTool.Parent = Character
             Screwdriver:InvokeServer("Cast Shadow", {Block})
+            PropertiesTool.Parent = Backpack
         end
     end,
     ["Text"] = function(Block, Text)
@@ -112,29 +107,48 @@ local BuildABoat = {}
 BuildABoat.Zone = Zone
 
 function BuildABoat.new(Type)
-    Build:InvokeServer(Type, LocalPlayer.Data[Type].Value, Zone, CFrame.new(0, -200, 0), true, 1, CFrame.new(), false)
+	local Position = CFrame.new(math.random(-70, 70), math.random(-50, 40) - 150, math.random(-70, 70))
+	
+	local Block
+	local Connection = Workspace.DescendantAdded:Connect(function(Instance)
+	    if Instance.Name == "PPart" then
+	    	task.wait(0.05)
+	    	
+	        if (Instance.CFrame.p - (Zone.CFrame * Position).p).Magnitude < 1.73 then
+	            Block = Instance
+	        end
+	    end
+	end)
+
+    Build:InvokeServer(Type, LocalPlayer.Data[Type].Value, Zone, Position, true, 1, CFrame.new(), false)
 
 	repeat task.wait() until Block ~= nil
+
+	Connection:Disconnect()
 	
-	local Object = Block
-	Block = nil
-	
-    local Properties = getproperties(Object)
+    local Properties = getproperties(Block)
 
     return setmetatable({
-        Object = Object,
+        Object = Block,
         ActionFinished = true,
-        Destroy = function(self) Delete:InvokeServer(self.Object) end,
-        Remove = function(self) Delete:InvokeServer(self.Object) end,
-        ["Link"] = function(self, Link)
+        Destroy = function(self) Delete:InvokeServer(self.Object.Parent) end,
+        Remove = function(self) Delete:InvokeServer(self.Object.Parent) end,
+        Link = function(self, Link)
         	local Link = Link.Object.Parent
         	
 			Bind:InvokeServer({Link:FindFirstChild("BindWait") or Link:FindFirstChild("BindFire")}, self.Object.Parent, -1, false)
 		end,
-		["Unlink"] = function(self, Link)
+		Unlink = function(self, Link)
 			local Link = Link.Object.Parent
 			
 			Bind:InvokeServer({Link:FindFirstChild("BindWait") or Link:FindFirstChild("BindFire")}, self.Object.Parent, -1, true)
+		end,
+		Activate = function(self)
+			for _, Instance in next, self.Object.Parent:GetDescendants() do
+				if Instance:IsA("ClickDetector") then
+					fireclickdetector(Instance)
+				end
+			end
 		end
     }, {
         __index = Properties,
@@ -155,5 +169,3 @@ function BuildABoat.new(Type)
         end
     })
 end
-
-return BuildABoat

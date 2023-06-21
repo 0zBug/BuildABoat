@@ -159,52 +159,46 @@ local Edit = {
 }
 
 function BuildABoat.Save(File)
-	local Data = {}
+    local Data = {}
 	
-	for _, Instance in next, Workspace:GetChildren() do
-		if Instance:FindFirstChild("PPart") and Instance:FindFirstChild("Tag") and Instance.Tag.Value == LocalPlayer.Name then
-			local Part = Instance.PPart
-			print(CFrame.new(-Zone.Position) * Part.CFrame)
-			table.insert(Data, string.format("%s,%s,%s,%s,%s", tostring(Part.Size), tostring(Part.CFrame * Zone.CFrame:Inverse()), tostring(Part.Color), tostring(Part.Transparency), Instance.Name))
-		end
-	end
+    for _, Instance in next, Workspace:GetChildren() do
+        if Instance:FindFirstChild("PPart") and Instance:FindFirstChild("Tag") and Instance.Tag.Value == LocalPlayer.Name then
+            local Part = Instance.PPart
+            table.insert(Data, string.format("%s,%s,%s,%s,%s", tostring(Part.Size), tostring(Part.CFrame * Zone.CFrame:Inverse()), tostring(Part.Color), tostring(Part.Transparency), Instance.Name))
+        end
+    end
 	
-	writefile("Saves/" .. File .. ".dat", table.concat(Data, "\n"))
+    writefile("Saves/" .. File .. ".dat", table.concat(Data, "\n"))
 end
 
 local Number = 0
 function BuildABoat.Load(File)
-	local Data = string.split(readfile("Saves/" .. File .. ".dat"), "\n")
+    local Data = string.split(readfile("Saves/" .. File .. ".dat"), "\n")
 	
-	for _, Data in next, Data do
-		local d = string.split(Data, ",")
-		local Size = Vector3.new(d[1], d[2], d[3])
-		local CFrame = CFrame.new(d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]) * Zone.CFrame
-		local Color = Color3.new(d[16], d[17], d[18])
-		local Transparency = tonumber(d[19]) * 100
-		local Material = d[20]
+    for _, Data in next, Data do
+        local d = string.split(Data, ",")
+        local Size = Vector3.new(d[1], d[2], d[3])
+        local CFrame = CFrame.new(d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]) * Zone.CFrame
+        local Color = Color3.new(d[16], d[17], d[18])
+        local Transparency = tonumber(d[19]) * 100
+        local Material = d[20]
 
-		if not Test then
-			repeat task.wait() until Number < 25
-		end
+        repeat task.wait() until Number < 25
 		
         Number = Number + 1
         
         task.spawn(function()
-			local Part = BuildABoat.new(Material)
-			Part.Size = Size
-			Part.Color = Color
-			
-			wait()
-			Part.Transparency = Transparency
-			Part.CFrame = CFrame
-			
-			Number = Number - 1
-		end)
+            local Part = BuildABoat.new(Material)
+            Part.Size = Size
+            Part.Color = Color
+            Part.Transparency = Transparency
+            Part.CFrame = CFrame
+				
+            Number = Number - 1
+        end)
 		
-		task.wait(0.01)
-	end
-
+        task.wait(0.01)
+    end
 end
 
 function BuildABoat.new(Type)

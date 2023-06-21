@@ -98,7 +98,7 @@ local Edit = {
                 Screwdriver:InvokeServer("Transparency", {Block.Object.Parent})
             end
         elseif Difference < 0 then
-            for i = 1, 4 - Difference  do
+            for i = 1, 3 - Difference  do
                 Screwdriver:InvokeServer("Transparency", {Block.Object.Parent})
             end
         end
@@ -143,8 +143,11 @@ local Edit = {
         New.Size = Block.Object.Size
 
         Block:Destroy()
+        
+        task.wait(0.15)
+        
         Block:Set(New)
-
+		
         Block.ActionFinished = true
     end,
     ["Text"] = function(Block, Text)

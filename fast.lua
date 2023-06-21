@@ -106,7 +106,7 @@ local BuildABoat = {}
 BuildABoat.Zone = Zone
 
 function BuildABoat.new(Type)
-	local Position = CFrame.new(math.random(-70, 70), math.random(-50, 40) - 150, math.random(-70, 70))
+	local Position = CFrame.new(math.random(-70, 70), math.random(-5000, 40) - 150, math.random(-70, 70))
 	
 	local Block
 	local Connection = Workspace.DescendantAdded:Connect(function(Instance)

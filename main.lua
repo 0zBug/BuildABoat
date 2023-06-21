@@ -166,16 +166,17 @@ function BuildABoat.new(Type)
 	    end
 	end)
 
-    Build:InvokeServer(Type, LocalPlayer.Data[Type].Value, Zone, Position, true, 1, CFrame.new(), false)
+	task.spawn(function()
+		Build:InvokeServer(Type, LocalPlayer.Data[Type].Value, Zone, Position, true, 1, CFrame.new(), false)
 
-	repeat task.wait() until Block ~= nil
-
-	Connection:Disconnect()
+		repeat task.wait() until Block ~= nil
+		
+		Connection:Disconnect()
+	end)
 	
-    local Properties = getproperties(Block)
-
-    return setmetatable({
-        Object = Block,
+	local Properties
+	
+	local Object = setmetatable({
         ActionFinished = true,
         Destroy = function(self) Delete:InvokeServer(self.Object.Parent) end,
         Remove = function(self) Delete:InvokeServer(self.Object.Parent) end,
@@ -202,19 +203,34 @@ function BuildABoat.new(Type)
     }, {
         __index = Properties,
         __newindex = function(self, Key, Value)
-            Properties[Key] = Value
-
-            if Edit[Key] then
-                task.spawn(function()
-                	if not self.ActionFinished then
-                    	repeat task.wait() until self.ActionFinished
-                    end
-
-                    Edit[Key](self, Value)
-                end)
-            end
+        	task.spawn(function()
+        		repeat task.wait() until self.Object
+        	
+	            Properties[Key] = Value
+	
+	            if Edit[Key] then
+	                task.spawn(function()
+	                	if not self.ActionFinished then
+	                    	repeat task.wait() until self.ActionFinished
+	                    end
+	                    
+	                	self.ActionFinished = false
+	
+	                    Edit[Key](self, Value)
+	                    
+	                    self.ActionFinished = true
+	                end)
+	            end
+            end)
         end
     })
+    
+    task.spawn(function()
+    	repeat task.wait() until Block ~= nil
+    	
+    	Properties = getproperties(Block)
+    	rawset(Object, "Object", Block)
+    end)
+    
+    return Object
 end
-
-return BuildABoat

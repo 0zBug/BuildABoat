@@ -138,7 +138,7 @@ local Edit = {
     	New.CastShadow = Block.Object.CastShadow
     	New.Transparency = Block.Object.Transparency
 
-		task.wait(0.05)
+		task.wait(0.1)
 
 		New.Size = Block.Object.Size
 		

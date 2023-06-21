@@ -106,7 +106,7 @@ local BuildABoat = {}
 BuildABoat.Zone = Zone
 
 function BuildABoat.new(Type)
-	local Position = CFrame.new(math.random(-70, 70), math.random(-5000, 40) - 150, math.random(-70, 70))
+	local Position = CFrame.new(math.random(-70, 70), math.random(-50, 40) - 150, math.random(-70, 70))
 	
 	local Block
 	local Connection = Workspace.DescendantAdded:Connect(function(Instance)
@@ -121,15 +121,14 @@ function BuildABoat.new(Type)
 
     Build:InvokeServer(Type, LocalPlayer.Data[Type].Value, Zone, Position, true, 1, CFrame.new(), false)
 
-	task.spawn(function()
-		repeat task.wait() until Block ~= nil
-		
-		Connection:Disconnect()
-	end)
+	repeat task.wait() until Block ~= nil
+
+	Connection:Disconnect()
 	
-	local Properties
-	
-	local Object = setmetatable({
+    local Properties = getproperties(Block)
+
+    return setmetatable({
+        Object = Block,
         ActionFinished = true,
         Destroy = function(self) Delete:InvokeServer(self.Object.Parent) end,
         Remove = function(self) Delete:InvokeServer(self.Object.Parent) end,
@@ -153,32 +152,19 @@ function BuildABoat.new(Type)
     }, {
         __index = Properties,
         __newindex = function(self, Key, Value)
-        	task.spawn(function()
-        		repeat task.wait() until self.Object
-        	
-	            Properties[Key] = Value
-	
-	            if Edit[Key] then
-	                task.spawn(function()
-	                	self.ActionFinished = false
-	
-	                    Edit[Key](self.Object.Parent, Value)
-	                    
-	                    self.ActionFinished = true
-	                end)
-	            end
-            end)
+            Properties[Key] = Value
+
+            if Edit[Key] then
+                task.spawn(function()
+                    repeat task.wait() until self.ActionFinished == true
+
+                    self.ActionFinished = false
+
+                    Edit[Key](self.Object.Parent, Value)
+
+                    self.ActionFinished = true
+                end)
+            end
         end
     })
-    
-    task.spawn(function()
-    	repeat task.wait() until Block ~= nil
-    	
-    	Properties = getproperties(Block)
-    	rawset(Object, "Object", Block)
-    end)
-    
-    return Object
 end
-
-return BuildABoat

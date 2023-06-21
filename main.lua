@@ -31,6 +31,34 @@ local Bind = BindTool.RF
 local PropertiesTool = GetTool("PropertiesTool")
 local Screwdriver = PropertiesTool.SetPropertieRF
 
+local BuildABoat = {
+	Zone = Zone,
+	Materials = {
+		Plastic = "Plastic",
+		Wood = "SmoothWood",
+		WoodPlanks = "Wood",
+		Slate = "Coal",
+		Concrete = "Concrete",
+		Metal = "Metal",
+		CorrodedMetal = "Rusted",
+		DiamondPlate = "Titanium",
+		Foil = "Bouncy",
+		Grass = "Grass",
+		Ice = "Ice",
+		Brick = "Brick",
+		Sand = "Sand",
+		Fabric = "Fabric",
+		Granite = "Obsidian",
+		Marble = "Marble",
+		Pebble = "Plastic",
+		Cobblestone = "Stone",
+		SmoohPlastic = "Plastic",
+		Neon = "Neon",
+		Glass = "Glass",
+		ForceField = "Plastic"
+	}
+}
+
 local function Move(Block, CFrame)
 	if string.sub(Block.Name, -5, -1) ~= "Block" then
 		TrowelTool.Parent = Character
@@ -45,65 +73,84 @@ end
 
 local Edit = {
     ["Size"] = function(Block, Size)
-        Scale:InvokeServer(Block, Size, Block.PPart.CFrame)
+        Scale:InvokeServer(Block.Object.Parent, Size, Block.Object.CFrame)
     end,
     ["Position"] = function(Block, Position)
-    	Move(Block, CFrame.new(Position) * (Block.PPart.CFrame - Block.PPart.CFrame.p))
+    	Move(Block.Object.Parent, CFrame.new(Position) * (Block.Object.CFrame - Block.Object.CFrame.p))
     end,
     ["Orientation"] = function(Block, Orientation)
-   		Move(Block, CFrame.new(Block.PPart.Position) * CFrame.Angles(math.rad(Orientation.x), math.rad(Orientation.y), math.rad(Orientation.z)))
+   		Move(Block.Object.Parent, CFrame.new(Block.Object.Position) * CFrame.Angles(math.rad(Orientation.x), math.rad(Orientation.y), math.rad(Orientation.z)))
 	end,
     ["CFrame"] = function(Block, CFrame)
-    	Move(Block, CFrame)
+    	Move(Block.Object.Parent, CFrame)
     end,
     ["Color"] = function(Block, Color)
-        Paint:InvokeServer({{Block, Color}})
+        Paint:InvokeServer({{Block.Object.Parent, Color}})
     end,
     ["Transparency"] = function(Block, Transparency)
         local Transparency = math.round(Transparency / 25) * 25
 
-        local Start, Finish = Block.PPart.Transparency / 25, Transparency / 25
+        local Start, Finish = Block.Object.Transparency / 25, Transparency / 25
         local Difference = Finish - Start
 
         if Difference > 0 then
             for i = 1, Difference do
-                Screwdriver:InvokeServer("Transparency", {Block})
+                Screwdriver:InvokeServer("Transparency", {Block.Object.Parent})
             end
         elseif Difference < 0 then
-            for i = 1, 3 - Difference  do
-                Screwdriver:InvokeServer("Transparency", {Block})
+            for i = 1, 4 - Difference  do
+                Screwdriver:InvokeServer("Transparency", {Block.Object.Parent})
             end
         end
     end,
     ["Anchored"] = function(Block, Anchored)
-        if Block.PPart.Anchored ~= Anchored then
+        if Block.Object.Anchored ~= Anchored then
         	PropertiesTool.Parent = Character
-            Screwdriver:InvokeServer("Anchored", {Block})
+            Screwdriver:InvokeServer("Anchored", {Block.Object.Parent})
             PropertiesTool.Parent = Backpack
         end
     end,
     ["CanCollide"] = function(Block, CanCollide)
-        if Block.PPart.CanCollide ~= CanCollide then
+        if Block.Object.CanCollide ~= CanCollide then
         	PropertiesTool.Parent = Character
-            Screwdriver:InvokeServer("Collision", {Block})
+            Screwdriver:InvokeServer("Collision", {Block.Object.Parent})
             PropertiesTool.Parent = Backpack
         end
     end,
     ["CastShadow"] = function(Block, CastShadow)
-        if Block.PPart.CastShadow ~= CastShadow then
+        if Block.Object.CastShadow ~= CastShadow then
         	PropertiesTool.Parent = Character
-            Screwdriver:InvokeServer("Cast Shadow", {Block})
+            Screwdriver:InvokeServer("Cast Shadow", {Block.Object.Parent})
             PropertiesTool.Parent = Backpack
         end
     end,
+    ["Material"] = function(Block, Material)
+    	if type(Material) ~= "string" then
+    		Material = Material.Name
+   		end
+   		
+   		Block.ActionFinished = false
+    	local New = BuildABoat.new(BuildABoat.Materials[tostring(Material)] .. "Block")
+    	New.Color = Block.Object.Color
+    	New.CFrame = Block.Object.CFrame
+    	New.CanCollide = Block.Object.CanCollide
+    	New.Anchored = Block.Object.Anchored
+    	New.CastShadow = Block.Object.CastShadow
+    	New.Transparency = Block.Object.Transparency
+
+		task.wait(0.05)
+
+		New.Size = Block.Object.Size
+		
+    	Block:Destroy()
+    	Block:Set(New)
+    	
+    	Block.ActionFinished = true
+    end,
     ["Text"] = function(Block, Text)
-		Block.ClickDetector.Script.UpdateSignRE:FireServer(Text)
+		Block.Object.Parent.ClickDetector.Script.UpdateSignRE:FireServer(Text)
     end
 }
-
-local BuildABoat = {}
-
-BuildABoat.Zone = Zone
 
 function BuildABoat.new(Type)
 	local Position = CFrame.new(math.random(-70, 70), math.random(-5000, 40) - 150, math.random(-70, 70))
@@ -148,6 +195,9 @@ function BuildABoat.new(Type)
 					fireclickdetector(Instance)
 				end
 			end
+		end,
+		Set = function(self, Block)
+			self.Object = Block.Object
 		end
     }, {
         __index = Properties,
@@ -156,13 +206,11 @@ function BuildABoat.new(Type)
 
             if Edit[Key] then
                 task.spawn(function()
-                    repeat task.wait() until self.ActionFinished == true
+                	if not self.ActionFinished then
+                    	repeat task.wait() until self.ActionFinished
+                    end
 
-                    self.ActionFinished = false
-
-                    Edit[Key](self.Object.Parent, Value)
-
-                    self.ActionFinished = true
+                    Edit[Key](self, Value)
                 end)
             end
         end

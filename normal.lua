@@ -169,3 +169,5 @@ function BuildABoat.new(Type)
         end
     })
 end
+
+return BuildABoat

@@ -284,4 +284,6 @@ function BuildABoat.new(Type)
     return Object
 end
 
+BuildABoat.Functions = Edit
+
 return BuildABoat
